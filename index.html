@@ -24,6 +24,7 @@
     --text:#26313f;
     --muted:#6b7280;
     --border:#E4E1D8;
+    --maroon:#7A1F2B;
     --shadow: 0 2px 10px rgba(31,56,100,0.08), 0 1px 2px rgba(31,56,100,0.06);
     --radius: 14px;
   }
@@ -228,6 +229,47 @@
     border-radius:10px; padding:10px 14px; font-size:13px; margin-bottom:18px;
   }
   footer{ text-align:center; color: var(--muted); font-size:12px; padding: 20px 5vw 40px; }
+
+  /* Chips game */
+  .chip-banner{
+    display:flex; align-items:center; justify-content:center; gap:10px;
+    background: var(--green); color:#fff; font-weight:800; font-size:15px;
+    border-radius: 10px; padding:10px 16px; margin: 4px 0 18px;
+  }
+  .chip-grid{
+    display:grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: 14px; margin-top: 10px;
+  }
+  .chip-card{
+    border:1.5px solid var(--border); border-radius: 12px; padding: 14px;
+    background:#fff; display:flex; flex-direction:column; gap:6px;
+  }
+  .chip-card .chip-num{
+    width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    font-weight:900; font-size:14px; color:#fff;
+  }
+  .chip-card.positive{ border-color:#BFE0B2; background:#F5FBF3; }
+  .chip-card.positive .chip-num{ background: var(--green); }
+  .chip-card.positive .chip-name{ color: var(--green); }
+  .chip-card.negative{ border-color:#E9BFC4; background:#FBF3F4; }
+  .chip-card.negative .chip-num{ background: var(--maroon); }
+  .chip-card.negative .chip-name{ color: var(--maroon); }
+  .chip-card .chip-name{ font-weight:800; font-size:14px; }
+  .chip-card .chip-desc{ font-size:12.5px; color: var(--muted); }
+
+  select.chip-select{
+    width:100%; max-width:160px; border:1px solid var(--yellow-border); background: var(--yellow);
+    border-radius:6px; padding:6px 8px; font-size:13px; font-family:inherit;
+  }
+  table.chips-table th, table.chips-table td{
+    border:1px solid var(--border); padding:9px 10px; font-size:13.5px; text-align:left;
+  }
+  table.chips-table thead th{ color:#fff; font-size:12.5px; }
+  table.chips-table.positive thead th{ background: var(--green); }
+  table.chips-table.negative thead th{ background: var(--maroon); }
+  table.chips-table tbody tr:nth-child(even){ background:#FAFAF6; }
+  .gbp-pos{ color: var(--green); font-weight:800; }
+  .gbp-neg{ color: var(--maroon); font-weight:800; }
 </style>
 </head>
 <body>
@@ -248,6 +290,7 @@
   <button data-tab="players">Players &amp; Handicaps</button>
   <button data-tab="scorecards">Scorecards</button>
   <button data-tab="leaderboard">Leaderboard</button>
+  <button data-tab="chips">Chips Game</button>
 </nav>
 
 <main>
@@ -378,6 +421,48 @@
     </div>
   </section>
 
+  <!-- CHIPS GAME -->
+  <section id="chips" class="tab-panel">
+    <div class="card">
+      <h2 style="margin-bottom:2px;">Golf Chip Game — Win the Good. Avoid the Bad.</h2>
+      <p class="muted">Each foursome plays Chips every round, alongside the main Stableford competition.
+        Recreated here from the rules card you shared — send over the original image file if you'd rather
+        have it embedded exactly as designed.</p>
+      <div class="chip-banner">Each chip is worth £5</div>
+
+      <h3 style="margin-top:4px;">★ Positive Chips — win these ★</h3>
+      <div class="chip-grid" id="chip-grid-positive"></div>
+
+      <h3>✕ Negative Chips — avoid these ✕</h3>
+      <div class="chip-grid" id="chip-grid-negative"></div>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top:0;">Chip Winners</h3>
+      <p class="muted">Record who won (or triggered) each chip at the end of every round.</p>
+      <div class="round-nav" id="chip-round-nav"></div>
+
+      <h4 style="color:var(--green); margin:14px 0 6px;">Positive chips</h4>
+      <div class="scroll-x">
+        <table class="chips-table positive" id="chip-table-positive"></table>
+      </div>
+
+      <h4 style="color:var(--maroon); margin:18px 0 6px;">Negative chips</h4>
+      <div class="scroll-x">
+        <table class="chips-table negative" id="chip-table-negative"></table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top:0;">Chips Standings</h3>
+      <p class="muted">Positive chips pay you £5 each; negative chips cost you £5 each (assumption — adjust with
+        the group if the payout works differently).</p>
+      <div class="scroll-x">
+        <table class="simple" id="chip-standings"></table>
+      </div>
+    </div>
+  </section>
+
 </main>
 
 <footer>Scotland Golf Trip 2026 · Built for the group, share on any screen · Excel workbook is the official scorecard</footer>
@@ -404,15 +489,39 @@ const COURSES = {
 const ROUND_ORDER = ["eden","old","leven","crail","craigtoun"];
 const HANDICAP_COURSES = ["eden","old","crail","craigtoun"]; // ones with slope/rating data
 
+const CHIPS_POSITIVE = [
+  {name:"1 Putt",               desc:"Hole out in one putt."},
+  {name:"Birdie (Gross)",       desc:"Score a birdie on the hole."},
+  {name:"Sandy",                desc:"Hit a green out of a bunker."},
+  {name:"Closest to Pin (Par 3)", desc:"Closest to the pin on a par 3."},
+  {name:"8 Ball",               desc:"Fairway in Reg, then Green in Reg."},
+  {name:"Chip In",              desc:"Chip from off the green — once all balls are on the green, you're closest."},
+  {name:"Wildcard",             desc:"Wheel spin before each round. Random player starts with the chip and must challenge a different person each hole, winning outright (not a draw or loss), to keep it."},
+];
+const CHIPS_NEGATIVE = [
+  {name:"Seven",       desc:"Score a seven on any hole."},
+  {name:"Sand",        desc:"Go in a bunker — closest to the pin from sand takes the chip."},
+  {name:"Gauze Bush",  desc:"Your ball comes to rest in the gauze bush."},
+  {name:"Lost Ball",   desc:"Hit a ball that cannot be found (out of bounds or unplayable)."},
+  {name:"Water",       desc:"Ball in any water hazard."},
+  {name:"3 Putt",      desc:"Hole out in three putts."},
+  {name:"Beer",        desc:"Whiff or top your shot — beer must be consumed that evening too!"},
+];
+
 // ---- state ----
 let currentRound = "eden";
 let currentPlayer = PLAYERS[0].name;
+let currentChipRound = "eden";
 const state = {};
 ROUND_ORDER.forEach(k=>{
   state[k] = {
     par: Array(18).fill(null),
     si: Array(18).fill(null),
-    gross: {}
+    gross: {},
+    chips: {
+      positive: Array(CHIPS_POSITIVE.length).fill(""),
+      negative: Array(CHIPS_NEGATIVE.length).fill("")
+    }
   };
   PLAYERS.forEach(p=>{ state[k].gross[p.name] = Array(18).fill(null); });
 });
@@ -716,11 +825,113 @@ function renderLeaderboard(){
   el.innerHTML = head + body;
 }
 
+// ---- Chips game ----
+function renderChipCards(){
+  const posEl = document.getElementById("chip-grid-positive");
+  posEl.innerHTML = CHIPS_POSITIVE.map((c,i)=>
+    '<div class="chip-card positive"><div class="chip-num">'+(i+1)+'</div>'+
+    '<div class="chip-name">'+c.name+'</div><div class="chip-desc">'+c.desc+'</div></div>'
+  ).join("");
+
+  const negEl = document.getElementById("chip-grid-negative");
+  negEl.innerHTML = CHIPS_NEGATIVE.map((c,i)=>
+    '<div class="chip-card negative"><div class="chip-num">'+(i+1)+'</div>'+
+    '<div class="chip-name">'+c.name+'</div><div class="chip-desc">'+c.desc+'</div></div>'
+  ).join("");
+}
+
+function renderChipRoundNav(){
+  const el = document.getElementById("chip-round-nav");
+  el.innerHTML = "";
+  ROUND_ORDER.forEach(k=>{
+    const btn = document.createElement("button");
+    btn.textContent = COURSES[k].name + (k==="leven" ? " (Alt)" : "");
+    if(k===currentChipRound) btn.classList.add("active");
+    btn.addEventListener("click", ()=>{ currentChipRound = k; renderChipTables(); });
+    el.appendChild(btn);
+  });
+}
+
+function playerOptionsHtml(selected){
+  let opts = '<option value=""'+(selected===""?" selected":"")+'>—</option>';
+  PLAYERS.forEach(p=>{
+    opts += '<option value="'+p.name+'"'+(selected===p.name?" selected":"")+'>'+p.name+'</option>';
+  });
+  return opts;
+}
+
+function renderChipTables(){
+  renderChipRoundNav();
+  const s = state[currentChipRound].chips;
+
+  const posEl = document.getElementById("chip-table-positive");
+  let posHead = "<thead><tr><th>#</th><th>Chip</th><th>Description</th><th>Winner</th></tr></thead>";
+  let posBody = "<tbody>";
+  CHIPS_POSITIVE.forEach((c,i)=>{
+    posBody += "<tr><td>"+(i+1)+"</td><td><strong>"+c.name+"</strong></td><td class='muted'>"+c.desc+"</td>"+
+      "<td><select class='chip-select' data-kind='positive' data-idx='"+i+"'>"+playerOptionsHtml(s.positive[i])+"</select></td></tr>";
+  });
+  posBody += "</tbody>";
+  posEl.innerHTML = posHead + posBody;
+
+  const negEl = document.getElementById("chip-table-negative");
+  let negHead = "<thead><tr><th>#</th><th>Chip</th><th>Description</th><th>Winner</th></tr></thead>";
+  let negBody = "<tbody>";
+  CHIPS_NEGATIVE.forEach((c,i)=>{
+    negBody += "<tr><td>"+(i+1)+"</td><td><strong>"+c.name+"</strong></td><td class='muted'>"+c.desc+"</td>"+
+      "<td><select class='chip-select' data-kind='negative' data-idx='"+i+"'>"+playerOptionsHtml(s.negative[i])+"</select></td></tr>";
+  });
+  negBody += "</tbody>";
+  negEl.innerHTML = negHead + negBody;
+
+  document.querySelectorAll("#chip-table-positive select, #chip-table-negative select").forEach(sel=>{
+    sel.addEventListener("change",(e)=>{
+      const kind = e.target.dataset.kind;
+      const idx = Number(e.target.dataset.idx);
+      state[currentChipRound].chips[kind][idx] = e.target.value;
+      renderChipStandings();
+    });
+  });
+}
+
+function renderChipStandings(){
+  const el = document.getElementById("chip-standings");
+  const rows = PLAYERS.map(p=>{
+    let pos = 0, neg = 0;
+    ROUND_ORDER.forEach(k=>{
+      const c = state[k].chips;
+      pos += c.positive.filter(w=>w===p.name).length;
+      neg += c.negative.filter(w=>w===p.name).length;
+    });
+    return {name:p.name, pos, neg, net:(pos-neg)*5};
+  }).sort((a,b)=>b.net-a.net);
+
+  let head = "<thead><tr><th>Player</th><th style='text-align:center;'>Positive Chips</th>"+
+    "<th style='text-align:center;'>Negative Chips</th><th style='text-align:center;'>Net</th></tr></thead>";
+  let body = "<tbody>";
+  rows.forEach(r=>{
+    const netClass = r.net > 0 ? "gbp-pos" : (r.net < 0 ? "gbp-neg" : "");
+    const netText = (r.net > 0 ? "+" : "") + "£" + r.net;
+    body += "<tr><td>"+r.name+"</td><td style='text-align:center;'>"+r.pos+"</td>"+
+      "<td style='text-align:center;'>"+r.neg+"</td>"+
+      "<td style='text-align:center;' class='"+netClass+"'>"+netText+"</td></tr>";
+  });
+  body += "</tbody>";
+  el.innerHTML = head + body;
+}
+
+function renderChips(){
+  renderChipCards();
+  renderChipTables();
+  renderChipStandings();
+}
+
 // Refresh leaderboard + summary whenever the Leaderboard or Scorecards tab is opened
 document.querySelectorAll("nav.tabs button").forEach(btn=>{
   btn.addEventListener("click", ()=>{
     if(btn.dataset.tab === "leaderboard") renderLeaderboard();
     if(btn.dataset.tab === "scorecards") renderRoundSummary();
+    if(btn.dataset.tab === "chips") renderChipStandings();
   });
 });
 
@@ -728,6 +939,7 @@ document.querySelectorAll("nav.tabs button").forEach(btn=>{
 renderPlayersTable();
 renderScorecards();
 renderLeaderboard();
+renderChips();
 </script>
 </body>
 </html>
