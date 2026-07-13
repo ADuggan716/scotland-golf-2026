@@ -417,6 +417,17 @@
         <table class="simple" id="round-summary"></table>
       </div>
     </div>
+
+    <div class="card">
+      <h3 style="margin-top:0;">Team Pairings</h3>
+      <p class="muted" id="team-pairings-note"></p>
+      <div class="scroll-x">
+        <table class="card-table" id="team-pairings-editor"></table>
+      </div>
+      <div class="scroll-x" id="team-pairings-standings-wrap" style="margin-top:14px;">
+        <table class="simple" id="team-pairings-standings"></table>
+      </div>
+    </div>
   </section>
 
   <!-- LEADERBOARD -->
@@ -545,8 +556,17 @@ const PRESET = {
 // Bump this whenever new official scores/pars are published to the site (PRESET changes below).
 // Saved data in a browser from an older version is discarded in favor of the fresh published data,
 // so a re-deploy always wins over stale local edits sitting in someone's browser.
-const DATA_VERSION = "2026-07-13b";
+const DATA_VERSION = "2026-07-13c";
 const STORAGE_KEY = "scotlandGolf2026_state_v1";
+
+// Team pairings picked for the day, per round. Rounds not listed here start with
+// blank placeholder teams until partners are chosen and entered on the site.
+const DEFAULT_TEAMS = {
+  eden: [{a:"David",b:"Andrew"},{a:"Jonathan",b:"Patrick"},{a:"Paul",b:"Fraser"},{a:"Peter",b:"Colin"}]
+};
+function blankTeams(){
+  return [{a:"",b:""},{a:"",b:""},{a:"",b:""},{a:"",b:""}];
+}
 
 let currentRound = "eden";
 let currentPlayer = PLAYERS[0].name;
@@ -558,6 +578,7 @@ ROUND_ORDER.forEach(k=>{
     par: preset ? preset.par.slice() : Array(18).fill(null),
     si: preset ? preset.si.slice() : Array(18).fill(null),
     gross: {},
+    teams: DEFAULT_TEAMS[k] ? DEFAULT_TEAMS[k].map(t=>({a:t.a,b:t.b})) : blankTeams(),
     chips: {
       positive: Array(CHIPS_POSITIVE.length).fill(""),
       negative: Array(CHIPS_NEGATIVE.length).fill("")
@@ -588,6 +609,7 @@ function loadState(){
       PLAYERS.forEach(p=>{ if(saved.state[k].gross[p.name]) state[k].gross[p.name] = saved.state[k].gross[p.name]; });
     }
     if(saved.state[k].chips) state[k].chips = saved.state[k].chips;
+    if(saved.state[k].teams) state[k].teams = saved.state[k].teams;
   });
   return true;
 }
@@ -711,6 +733,7 @@ function renderParSiTable(){
       updateParSiTotals();
       renderScoreTable();
       renderRoundSummary();
+      renderTeamPairings();
     });
   });
   updateParSiTotals();
@@ -805,6 +828,7 @@ function renderScoreTable(){
       saveState();
       renderScoreTable();
       renderRoundSummary();
+      renderTeamPairings();
     });
   }
 
@@ -815,6 +839,7 @@ function renderScoreTable(){
       saveState();
       updateScoreTotals();
       renderRoundSummary();
+      renderTeamPairings();
     });
   });
 
@@ -896,6 +921,60 @@ function renderRoundSummary(){
   el.innerHTML = head + body;
 }
 
+function renderTeamPairings(){
+  const s = state[currentRound];
+  if(!s.teams) s.teams = blankTeams();
+
+  const noteEl = document.getElementById("team-pairings-note");
+  const editorEl = document.getElementById("team-pairings-editor");
+  const standingsEl = document.getElementById("team-pairings-standings");
+
+  noteEl.textContent = "Pick each pair's partners below — combined round points update automatically.";
+
+  let head = "<thead><tr><th class='label'>Team</th><th>Partner 1</th><th>Partner 2</th></tr></thead>";
+  let body = "<tbody>";
+  s.teams.forEach((t,i)=>{
+    body += "<tr><td class='label'>Team "+(i+1)+"</td>"+
+      "<td><select class='chip-select' data-idx='"+i+"' data-slot='a'>"+playerOptionsHtml(t.a)+"</select></td>"+
+      "<td><select class='chip-select' data-idx='"+i+"' data-slot='b'>"+playerOptionsHtml(t.b)+"</select></td></tr>";
+  });
+  body += "</tbody>";
+  editorEl.innerHTML = head + body;
+
+  editorEl.querySelectorAll("select").forEach(sel=>{
+    sel.addEventListener("change",(e)=>{
+      const idx = Number(e.target.dataset.idx);
+      const slot = e.target.dataset.slot;
+      state[currentRound].teams[idx][slot] = e.target.value;
+      saveState();
+      renderTeamPairings();
+    });
+  });
+
+  const rows = s.teams
+    .filter(t=>t.a && t.b)
+    .map(t=>({
+      a: t.a, b: t.b,
+      total: roundTotalPointsWithManual(currentRound, t.a) + roundTotalPointsWithManual(currentRound, t.b)
+    }))
+    .sort((x,y)=>y.total-x.total);
+
+  if(rows.length===0){
+    standingsEl.innerHTML = "";
+    standingsEl.parentElement.style.display = "none";
+    noteEl.textContent = "Partners haven't been picked for this round yet — choose them above once you know.";
+  } else {
+    standingsEl.parentElement.style.display = "";
+    let shead = "<thead><tr><th>Team</th><th style='text-align:center;'>Combined Points</th></tr></thead>";
+    let sbody = "<tbody>";
+    rows.forEach(r=>{
+      sbody += "<tr><td>"+r.a+" &amp; "+r.b+"</td><td style='text-align:center;font-weight:800;'>"+r.total+"</td></tr>";
+    });
+    sbody += "</tbody>";
+    standingsEl.innerHTML = shead + sbody;
+  }
+}
+
 function renderScorecards(){
   renderRoundNav();
   renderCourseCard();
@@ -903,6 +982,7 @@ function renderScorecards(){
   renderPlayerTabs();
   renderScoreTable();
   renderRoundSummary();
+  renderTeamPairings();
 }
 
 // ---- Leaderboard ----
@@ -1041,7 +1121,7 @@ function renderChips(){
 document.querySelectorAll("nav.tabs button").forEach(btn=>{
   btn.addEventListener("click", ()=>{
     if(btn.dataset.tab === "leaderboard") renderLeaderboard();
-    if(btn.dataset.tab === "scorecards") renderRoundSummary();
+    if(btn.dataset.tab === "scorecards"){ renderRoundSummary(); renderTeamPairings(); }
     if(btn.dataset.tab === "chips") renderChipStandings();
   });
 });
