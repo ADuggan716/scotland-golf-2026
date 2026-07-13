@@ -196,6 +196,9 @@
     background: var(--calc); border:1px solid #B9D3AB; color: var(--green);
     font-weight:800; border-radius: 8px; padding: 3px 10px; font-size:13px;
   }
+  td.ref-cell{
+    background:#F5F3EC; color: var(--muted); font-weight:700;
+  }
 
   .par-check{ font-size:12.5px; font-weight:700; padding:3px 10px; border-radius:999px; }
   .par-check.ok{ background:#DDF0D8; color:#2E5B1E; }
@@ -722,6 +725,18 @@ function renderScoreTable(){
     hcpCell = '<span class="chcp-badge">Course Hcp '+chcp+'</span>';
   }
 
+  let parRow = '<tr><td class="label">Par</td>';
+  for(let i=0;i<9;i++) parRow += '<td class="ref-cell">'+(s.par[i]??"")+'</td>';
+  parRow += '<td class="out-in" id="rp-out"></td>';
+  for(let i=9;i<18;i++) parRow += '<td class="ref-cell">'+(s.par[i]??"")+'</td>';
+  parRow += '<td class="out-in" id="rp-in"></td><td class="total" id="rp-tot"></td></tr>';
+
+  let strokesRow = '<tr><td class="label">Strokes received</td>';
+  for(let i=0;i<9;i++) strokesRow += '<td class="ref-cell" id="st-'+i+'"></td>';
+  strokesRow += '<td class="out-in" id="st-out"></td>';
+  for(let i=9;i<18;i++) strokesRow += '<td class="ref-cell" id="st-'+i+'"></td>';
+  strokesRow += '<td class="out-in" id="st-in"></td><td class="total" id="st-tot"></td></tr>';
+
   let grossRow = '<tr><td class="label">'+currentPlayer+' — Gross &nbsp;'+hcpCell+'</td>';
   for(let i=0;i<9;i++) grossRow += '<td><input class="cell-input" type="number" data-idx="'+i+'" value="'+(s.gross[currentPlayer][i]??"")+'"></td>';
   grossRow += '<td class="out-in" id="g-out"></td>';
@@ -734,7 +749,7 @@ function renderScoreTable(){
   for(let i=9;i<18;i++) ptsRow += '<td id="p-'+i+'"></td>';
   ptsRow += '<td class="out-in" id="p-in"></td><td class="total" id="p-tot"></td></tr>';
 
-  el.innerHTML = head + "<tbody>" + grossRow + ptsRow + "</tbody>";
+  el.innerHTML = head + "<tbody>" + parRow + strokesRow + grossRow + ptsRow + "</tbody>";
 
   if(manualHcp){
     document.getElementById("manual-hcp").addEventListener("input",(e)=>{
@@ -764,6 +779,25 @@ function updateScoreTotals(){
   let chcp = c.par==null
     ? (s.manualHcp && s.manualHcp[currentPlayer]!=null ? s.manualHcp[currentPlayer] : null)
     : courseHandicap(player, currentRound);
+
+  // Par reference row
+  const parOut = s.par.slice(0,9).reduce((a,b)=>a+(b||0),0);
+  const parIn = s.par.slice(9,18).reduce((a,b)=>a+(b||0),0);
+  document.getElementById("rp-out").textContent = parOut || "";
+  document.getElementById("rp-in").textContent = parIn || "";
+  document.getElementById("rp-tot").textContent = (parOut+parIn) || "";
+
+  // Strokes received row
+  let stOut=0, stIn=0;
+  for(let i=0;i<18;i++){
+    const strokes = strokesOnHole(chcp, s.si[i]);
+    const cell = document.getElementById("st-"+i);
+    cell.textContent = (chcp==null || s.si[i]==null) ? "" : (strokes || "–");
+    if(i<9) stOut += strokes; else stIn += strokes;
+  }
+  document.getElementById("st-out").textContent = stOut;
+  document.getElementById("st-in").textContent = stIn;
+  document.getElementById("st-tot").textContent = stOut+stIn;
 
   const gross = s.gross[currentPlayer];
   const gOut = gross.slice(0,9).reduce((a,b)=>a+(b||0),0);
