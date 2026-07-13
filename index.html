@@ -698,7 +698,12 @@ function renderPlayerTabs(){
     const btn = document.createElement("button");
     btn.textContent = p.name;
     if(p.name===currentPlayer) btn.classList.add("active");
-    btn.addEventListener("click", ()=>{ currentPlayer = p.name; renderScoreTable(); });
+    btn.addEventListener("click", ()=>{
+      currentPlayer = p.name;
+      el.querySelectorAll("button").forEach(b=>b.classList.remove("active"));
+      btn.classList.add("active");
+      renderScoreTable();
+    });
     el.appendChild(btn);
   });
 }
