@@ -231,6 +231,10 @@
     background:#FFF7E6; border:1px solid #F0D89B; color:#7A5A00;
     border-radius:10px; padding:10px 14px; font-size:13px; margin-bottom:18px;
   }
+  button.reset-link{
+    background:none; border:none; padding:0; margin-left:4px; color:#7A5A00; font-weight:700;
+    font-size:13px; text-decoration:underline; cursor:pointer; font-family:inherit;
+  }
   footer{ text-align:center; color: var(--muted); font-size:12px; padding: 20px 5vw 40px; }
 
   /* Chips game */
@@ -383,8 +387,10 @@
 
   <!-- SCORECARDS -->
   <section id="scorecards" class="tab-panel">
-    <div class="notice">Scores entered on this page are for live display during play and reset if the page reloads.
-      The Excel workbook remains the official record — copy final totals back into it after each round.</div>
+    <div class="notice">Edits you make here are saved automatically to this device's browser, so they'll still be
+      here next time you open the page on this phone/computer — but they don't sync to anyone else's device.
+      The Excel workbook remains the official record. <button id="reset-local-btn" class="reset-link">Discard my local
+      edits &amp; reload the published scores</button></div>
 
     <div class="round-nav" id="round-nav"></div>
 
@@ -536,6 +542,12 @@ const PRESET = {
 };
 
 // ---- state ----
+// Bump this whenever new official scores/pars are published to the site (PRESET changes below).
+// Saved data in a browser from an older version is discarded in favor of the fresh published data,
+// so a re-deploy always wins over stale local edits sitting in someone's browser.
+const DATA_VERSION = "2026-07-13b";
+const STORAGE_KEY = "scotlandGolf2026_state_v1";
+
 let currentRound = "eden";
 let currentPlayer = PLAYERS[0].name;
 let currentChipRound = "eden";
@@ -555,6 +567,35 @@ ROUND_ORDER.forEach(k=>{
     state[k].gross[p.name] = (preset && preset.gross[p.name]) ? preset.gross[p.name].slice() : Array(18).fill(null);
   });
 });
+
+// ---- local persistence ----
+// Saves to this browser only (not shared between people/devices) so edits survive a page reload.
+function saveState(){
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({version: DATA_VERSION, state}));
+  }catch(e){ /* storage unavailable (private browsing etc.) — edits just won't persist */ }
+}
+function loadState(){
+  let saved;
+  try{ saved = JSON.parse(localStorage.getItem(STORAGE_KEY)); }catch(e){ saved = null; }
+  if(!saved || saved.version !== DATA_VERSION || !saved.state) return false;
+  ROUND_ORDER.forEach(k=>{
+    if(!saved.state[k]) return;
+    if(saved.state[k].par) state[k].par = saved.state[k].par;
+    if(saved.state[k].si) state[k].si = saved.state[k].si;
+    if(saved.state[k].manualHcp) state[k].manualHcp = saved.state[k].manualHcp;
+    if(saved.state[k].gross){
+      PLAYERS.forEach(p=>{ if(saved.state[k].gross[p.name]) state[k].gross[p.name] = saved.state[k].gross[p.name]; });
+    }
+    if(saved.state[k].chips) state[k].chips = saved.state[k].chips;
+  });
+  return true;
+}
+function resetToPublished(){
+  try{ localStorage.removeItem(STORAGE_KEY); }catch(e){}
+  location.reload();
+}
+const restoredFromLocalSave = loadState();
 
 // ---- math ----
 function courseHandicap(player, courseKey){
@@ -666,6 +707,7 @@ function renderParSiTable(){
       const key = e.target.dataset.key;
       const v = e.target.value === "" ? null : Number(e.target.value);
       state[currentRound][key][idx] = v;
+      saveState();
       updateParSiTotals();
       renderScoreTable();
       renderRoundSummary();
@@ -760,6 +802,7 @@ function renderScoreTable(){
     document.getElementById("manual-hcp").addEventListener("input",(e)=>{
       if(!s.manualHcp) s.manualHcp = {};
       s.manualHcp[currentPlayer] = e.target.value === "" ? null : Number(e.target.value);
+      saveState();
       renderScoreTable();
       renderRoundSummary();
     });
@@ -769,6 +812,7 @@ function renderScoreTable(){
     inp.addEventListener("input",(e)=>{
       const idx = Number(e.target.dataset.idx);
       state[currentRound].gross[currentPlayer][idx] = e.target.value === "" ? null : Number(e.target.value);
+      saveState();
       updateScoreTotals();
       renderRoundSummary();
     });
@@ -955,6 +999,7 @@ function renderChipTables(){
       const kind = e.target.dataset.kind;
       const idx = Number(e.target.dataset.idx);
       state[currentChipRound].chips[kind][idx] = e.target.value;
+      saveState();
       renderChipStandings();
     });
   });
@@ -1006,6 +1051,7 @@ renderPlayersTable();
 renderScorecards();
 renderLeaderboard();
 renderChips();
+document.getElementById("reset-local-btn").addEventListener("click", resetToPublished);
 </script>
 </body>
 </html>
