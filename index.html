@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scotland Golf Trip 2026 — Stableford</title>
+<meta name="description" content="Rules, handicaps, scorecards and leaderboard for the Scotland Golf Trip 2026 Stableford competition.">
+<meta property="og:title" content="Scotland Golf Trip 2026 — Stableford">
+<meta property="og:description" content="Rules, handicaps, scorecards and leaderboard — tap to see where everyone stands.">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#1F3864">
+<style>
+  :root{
+    --navy:#1F3864;
+    --navy-dark:#152647;
+    --green:#375623;
+    --green-light:#5b8a3a;
+    --cream:#FBF9F4;
+    --card:#FFFFFF;
+    --yellow:#FFF2CC;
+    --yellow-border:#E4C766;
+    --calc:#E3EEDD;
+    --blue-light:#D9E2F3;
+    --text:#26313f;
+    --muted:#6b7280;
+    --border:#E4E1D8;
+    --shadow: 0 2px 10px rgba(31,56,100,0.08), 0 1px 2px rgba(31,56,100,0.06);
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background: var(--cream);
+    color: var(--text);
+    font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  header.hero{
+    background: linear-gradient(135deg, var(--navy) 0%, var(--navy-dark) 100%);
+    color:#fff;
+    padding: 28px 5vw 22px;
+  }
+  header.hero h1{
+    margin:0 0 4px;
+    font-size: clamp(22px, 3vw, 34px);
+    letter-spacing:.2px;
+  }
+  header.hero p{
+    margin:0;
+    color: #C9D6EE;
+    font-size: clamp(13px, 1.4vw, 16px);
+  }
+  .badge-row{
+    margin-top:16px;
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  .badge{
+    background: rgba(255,255,255,0.10);
+    border: 1px solid rgba(255,255,255,0.22);
+    color:#fff;
+    padding:6px 14px;
+    border-radius: 999px;
+    font-size: 12.5px;
+    font-weight:600;
+    letter-spacing:.3px;
+  }
+  nav.tabs{
+    position: sticky;
+    top:0;
+    z-index: 50;
+    background: var(--cream);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 5vw;
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+  nav.tabs button{
+    border:none;
+    background: transparent;
+    color: var(--muted);
+    font-family:inherit;
+    font-weight:700;
+    font-size: 14px;
+    padding: 10px 16px;
+    border-radius: 999px;
+    cursor:pointer;
+    transition: all .15s ease;
+  }
+  nav.tabs button:hover{ background: var(--blue-light); color: var(--navy); }
+  nav.tabs button.active{ background: var(--navy); color:#fff; }
+
+  main{ padding: 26px 5vw 60px; max-width: 1500px; margin: 0 auto; }
+  .tab-panel{ display:none; animation: fade .2s ease; }
+  .tab-panel.active{ display:block; }
+  @keyframes fade{ from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);} }
+
+  .card{
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 22px 24px;
+    margin-bottom: 20px;
+    border: 1px solid var(--border);
+  }
+  .card h2{
+    margin: 0 0 10px;
+    font-size: 19px;
+    color: var(--navy);
+  }
+  .card h3{
+    margin: 18px 0 8px;
+    font-size: 15px;
+    color: var(--green);
+  }
+  .card p, .card li{ font-size: 14.5px; color: var(--text); }
+  .card ol, .card ul{ padding-left: 20px; margin: 8px 0; }
+  .muted{ color: var(--muted); font-size: 13px; }
+  .grid-2{ display:grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 900px){ .grid-2{ grid-template-columns: 1fr; } }
+
+  table{ border-collapse: collapse; width:100%; font-size: 13.5px; }
+  table.simple th, table.simple td{
+    border: 1px solid var(--border);
+    padding: 9px 12px;
+    text-align:left;
+  }
+  table.simple thead th{
+    background: var(--green);
+    color:#fff;
+    font-size:12.5px;
+    letter-spacing:.2px;
+  }
+  table.simple tbody tr:nth-child(even){ background: #FAFAF6; }
+
+  .points-table td:nth-child(2), .points-table th:nth-child(2){ text-align:center; width:70px; }
+
+  .players-table td, .players-table th{ text-align:center; }
+  .players-table td:nth-child(2), .players-table th:nth-child(2){ text-align:left; }
+
+  .scroll-x{ overflow-x:auto; padding-bottom: 4px; }
+
+  /* Scorecard grid */
+  .round-nav{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom: 18px; }
+  .round-nav button{
+    border: 1.5px solid var(--border);
+    background: #fff;
+    color: var(--text);
+    font-family:inherit;
+    font-weight:700;
+    font-size: 13px;
+    padding: 9px 14px;
+    border-radius: 10px;
+    cursor:pointer;
+  }
+  .round-nav button.active{ background: var(--green); border-color: var(--green); color:#fff; }
+  .round-nav button:hover:not(.active){ border-color: var(--green-light); }
+
+  .course-head{ display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px; }
+  .course-head .name{ font-size: 20px; font-weight:800; color: var(--navy); margin:0; }
+  .course-head .sub{ color: var(--muted); font-size: 13.5px; margin:2px 0 0; }
+  .pill{
+    background: var(--blue-light); color: var(--navy);
+    font-weight:700; font-size:12.5px; padding: 5px 12px; border-radius: 999px;
+  }
+
+  table.card-table th, table.card-table td{
+    border: 1px solid var(--border);
+    text-align:center;
+    padding: 6px 4px;
+    font-size: 12.5px;
+    min-width: 40px;
+  }
+  table.card-table thead th{
+    background: var(--navy);
+    color:#fff;
+    position: sticky; top:0;
+  }
+  table.card-table td.label, table.card-table th.label{
+    text-align:left; min-width: 120px; font-weight:700; background:#F5F3EC;
+  }
+  table.card-table td.out-in{ background: var(--blue-light); font-weight:700; }
+  table.card-table td.total{ background: var(--navy); color:#fff; font-weight:800; }
+
+  input.cell-input{
+    width: 40px; text-align:center; border:1px solid var(--yellow-border);
+    background: var(--yellow); border-radius:4px; padding:4px 2px; font-size:13px;
+    font-family:inherit;
+  }
+  input.cell-input:focus{ outline: 2px solid var(--green); }
+  .chcp-badge{
+    background: var(--calc); border:1px solid #B9D3AB; color: var(--green);
+    font-weight:800; border-radius: 8px; padding: 3px 10px; font-size:13px;
+  }
+
+  .par-check{ font-size:12.5px; font-weight:700; padding:3px 10px; border-radius:999px; }
+  .par-check.ok{ background:#DDF0D8; color:#2E5B1E; }
+  .par-check.bad{ background:#FBE3D6; color:#9A4B12; }
+
+  .player-tabs{ display:flex; gap:6px; flex-wrap:wrap; margin: 16px 0 10px; }
+  .player-tabs button{
+    border:1px solid var(--border); background:#fff; font-family:inherit;
+    font-weight:700; font-size:12.5px; padding:7px 12px; border-radius:8px; cursor:pointer;
+  }
+  .player-tabs button.active{ background: var(--navy); color:#fff; border-color:var(--navy); }
+
+  .pts-cell{ font-weight:800; border-radius:5px; }
+  .pts-0{ color:#B23B3B; }
+  .pts-1{ color:#B8860B; }
+  .pts-2{ color:#3b6b3b; }
+  .pts-3{ color:#1F7A3D; background:#E5F5E6; }
+  .pts-4, .pts-5{ color:#8A5A00; background:#FFF0CC; }
+
+  /* Leaderboard */
+  table.lb th, table.lb td{ padding:12px 14px; font-size:15px; }
+  table.lb thead th{ background: var(--navy); color:#fff; }
+  table.lb tbody tr:nth-child(even){ background:#FAFAF6; }
+  table.lb td.rank{ font-weight:900; font-size:18px; color:var(--navy); text-align:center; width:50px; }
+  table.lb td.total{ font-weight:900; font-size:18px; color: var(--green); text-align:center; }
+  .medal{ font-size:18px; margin-right:4px; }
+  tr.leader{ background: var(--yellow) !important; }
+
+  .notice{
+    background:#FFF7E6; border:1px solid #F0D89B; color:#7A5A00;
+    border-radius:10px; padding:10px 14px; font-size:13px; margin-bottom:18px;
+  }
+  footer{ text-align:center; color: var(--muted); font-size:12px; padding: 20px 5vw 40px; }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <h1>Scotland Golf Trip 2026 — Stableford Competition</h1>
+  <p>Individual Net Stableford · 4 rounds · 8 players</p>
+  <div class="badge-row">
+    <span class="badge">Mon — Eden Course</span>
+    <span class="badge">Tue — Old Course / Leven Links</span>
+    <span class="badge">Wed — Crail (Balcomie)</span>
+    <span class="badge">Thu — Craigtoun</span>
+  </div>
+</header>
+
+<nav class="tabs">
+  <button data-tab="rules" class="active">Rules</button>
+  <button data-tab="players">Players &amp; Handicaps</button>
+  <button data-tab="scorecards">Scorecards</button>
+  <button data-tab="leaderboard">Leaderboard</button>
+</nav>
+
+<main>
+
+  <!-- RULES -->
+  <section id="rules" class="tab-panel active">
+    <div class="grid-2">
+      <div class="card">
+        <h2>What is Stableford?</h2>
+        <p>Stableford is a points-based format. Instead of counting total strokes, you score <strong>points</strong>
+        on every hole based on how your net score compares to par — highest total points wins, not lowest strokes.
+        A blow-up hole only costs you that hole's points (minimum 0), so one bad hole can't wreck your round.</p>
+        <h3>Format for this trip</h3>
+        <p><strong>Individual Net Stableford.</strong> Each player competes on their own — handicap strokes are
+        applied per player so everyone has a fair chance regardless of ability.</p>
+      </div>
+
+      <div class="card">
+        <h2>Points Table</h2>
+        <table class="simple points-table">
+          <thead><tr><th>Net Score vs. Par</th><th>Points</th></tr></thead>
+          <tbody>
+            <tr><td>2+ over par (net double bogey or worse)</td><td>0</td></tr>
+            <tr><td>1 over par (net bogey)</td><td>1</td></tr>
+            <tr><td>Par (net)</td><td>2</td></tr>
+            <tr><td>1 under par (net birdie)</td><td>3</td></tr>
+            <tr><td>2 under par (net eagle)</td><td>4</td></tr>
+            <tr><td>3 under par (net albatross)</td><td>5</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Handicap Strokes — how many shots you get, and where</h2>
+      <ol>
+        <li>Each player has a Handicap Index (see the Players tab) — fixed for the trip.</li>
+        <li>Each course converts that Index into a <strong>Course Handicap</strong> using its own Slope Rating and
+          Course Rating. This page does that math for you automatically.</li>
+        <li>Everyone plays their own full Course Handicap against scratch (0) — there's no adjustment relative to
+          the group.</li>
+        <li>Course Handicap strokes are given on the hardest holes first, using each hole's Stroke Index (SI 1 =
+          hardest, SI 18 = easiest). A Course Handicap over 18 gets a 2nd stroke on the hardest holes.</li>
+        <li>Net score on a hole = Gross strokes − handicap strokes received on that hole.</li>
+      </ol>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <h2>Winning the trip</h2>
+        <p>Each round is scored separately; total Stableford points across all 4 rounds are added up on the
+        Leaderboard tab. Most total points after 4 rounds wins. Round-by-round results are worth calling out too —
+        daily bragging rights / side bets.</p>
+      </div>
+      <div class="card">
+        <h2>Quick reference</h2>
+        <ul>
+          <li>Play the ball as it lies — honor-system trip, not a Rules of Golf exam. Use common sense for lost
+            balls / unplayable lies (count it a net double bogey and move on).</li>
+          <li>If a hole is clearly going to score 0 points, pick up and move to the next tee — normal Stableford
+            practice, keeps play moving.</li>
+          <li>Ties on the Leaderboard: countback on the last round played, then the last 9 holes of that round.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top:0;">Sources</h3>
+      <p class="muted">Stableford scoring rules — Wikipedia (en.wikipedia.org/wiki/Stableford), MyGolfSpy
+      (mygolfspy.com/news-opinion/stableford-scoring-system), bunkered.co.uk. Individual net Stableford format —
+      USGA Committee Procedures (usga.org).</p>
+    </div>
+  </section>
+
+  <!-- PLAYERS -->
+  <section id="players" class="tab-panel">
+    <div class="card">
+      <h2>Players &amp; Course Handicaps</h2>
+      <p class="muted">Course Handicap = ROUND(Handicap Index × Slope/113 + (Course Rating − Par)), calculated per
+        course/tee below. Leven Links isn't included — no slope/rating was supplied for it, so enter that Course
+        Handicap manually on the Leven scorecard.</p>
+      <div class="scroll-x">
+        <table class="simple players-table" id="players-table"></table>
+      </div>
+    </div>
+  </section>
+
+  <!-- SCORECARDS -->
+  <section id="scorecards" class="tab-panel">
+    <div class="notice">Scores entered on this page are for live display during play and reset if the page reloads.
+      The Excel workbook remains the official record — copy final totals back into it after each round.</div>
+
+    <div class="round-nav" id="round-nav"></div>
+
+    <div class="card" id="course-card"></div>
+
+    <div class="card">
+      <h3 style="margin-top:0;">Par &amp; Stroke Index</h3>
+      <p class="muted">Copy these from the course's printed scorecard for the tees you're playing.</p>
+      <div class="scroll-x">
+        <table class="card-table" id="parsi-table"></table>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="player-tabs" id="player-tabs"></div>
+      <div class="scroll-x">
+        <table class="card-table" id="score-table"></table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top:0;">Round standings</h3>
+      <div class="scroll-x">
+        <table class="simple" id="round-summary"></table>
+      </div>
+    </div>
+  </section>
+
+  <!-- LEADERBOARD -->
+  <section id="leaderboard" class="tab-panel">
+    <div class="card">
+      <h2>Leaderboard — Total Stableford Points</h2>
+      <p class="muted">Round 2 auto-picks whichever of Old Course / Leven Links has points entered.</p>
+      <div class="scroll-x">
+        <table class="lb simple" id="leaderboard-table"></table>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>Scotland Golf Trip 2026 · Built for the group, share on any screen · Excel workbook is the official scorecard</footer>
+
+<script>
+const PLAYERS = [
+  {name:"Paul",     hi:18.7, tee:"Senior"},
+  {name:"David",    hi:18.5, tee:"Senior"},
+  {name:"Jonathan", hi:12,   tee:"Standard"},
+  {name:"Patrick",  hi:22.5, tee:"Standard"},
+  {name:"Andrew",   hi:25.6, tee:"Standard"},
+  {name:"Peter",    hi:18,   tee:"Standard"},
+  {name:"Fraser",   hi:14.9, tee:"Standard"},
+  {name:"Colin",    hi:25.1, tee:"Standard"},
+];
+
+const COURSES = {
+  eden:      {name:"The Eden Course",        sub:"St Andrews Links",                    day:"Monday — Round 1",        par:70, std:{slope:121, rating:68.9}, sen:{slope:117, rating:67.0}},
+  old:       {name:"The Old Course",         sub:"St Andrews Links",                    day:"Tuesday — Round 2",       par:72, std:{slope:129, rating:71.4}, sen:{slope:125, rating:69.9}},
+  leven:     {name:"Leven Links",            sub:"Alt. for Round 2, if your group plays here", day:"Tuesday — Round 2 (Alt)", par:null, std:null, sen:null},
+  crail:     {name:"Crail Golfing Society",  sub:"Balcomie Links",                       day:"Wednesday — Round 3",     par:69, std:{slope:122, rating:69.7}, sen:{slope:118, rating:67.6}},
+  craigtoun: {name:"The Craigtoun Course",   sub:"St Andrews Links (formerly Duke's)",   day:"Thursday — Round 4",      par:71, std:{slope:134, rating:72.7}, sen:{slope:133, rating:70.6}},
+};
+const ROUND_ORDER = ["eden","old","leven","crail","craigtoun"];
+const HANDICAP_COURSES = ["eden","old","crail","craigtoun"]; // ones with slope/rating data
+
+// ---- state ----
+let currentRound = "eden";
+let currentPlayer = PLAYERS[0].name;
+const state = {};
+ROUND_ORDER.forEach(k=>{
+  state[k] = {
+    par: Array(18).fill(null),
+    si: Array(18).fill(null),
+    gross: {}
+  };
+  PLAYERS.forEach(p=>{ state[k].gross[p.name] = Array(18).fill(null); });
+});
+
+// ---- math ----
+function courseHandicap(player, courseKey){
+  const c = COURSES[courseKey];
+  if(!c || c.par==null) return null;
+  const t = player.tee === "Senior" ? c.sen : c.std;
+  if(!t) return null;
+  return Math.round(player.hi * (t.slope/113) + (t.rating - c.par));
+}
+function strokesOnHole(chcp, si){
+  if(chcp==null || si==null || si==="") return 0;
+  return Math.floor(chcp/18) + ((chcp % 18) >= si ? 1 : 0);
+}
+function pointsForHole(gross, chcp, si, par){
+  if(gross==null || gross==="" || par==null || par==="" || si==null || si==="") return null;
+  const strokes = strokesOnHole(chcp, Number(si));
+  const net = Number(gross) - strokes;
+  return Math.max(0, 2 - (net - Number(par)));
+}
+function roundTotalPoints(courseKey, playerName){
+  const s = state[courseKey];
+  const player = PLAYERS.find(p=>p.name===playerName);
+  const chcp = courseHandicap(player, courseKey);
+  let total = 0;
+  for(let i=0;i<18;i++){
+    const pts = pointsForHole(s.gross[playerName][i], chcp, s.si[i], s.par[i]);
+    total += pts || 0;
+  }
+  return total;
+}
+
+// ---- tabs ----
+document.querySelectorAll("nav.tabs button").forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    document.querySelectorAll("nav.tabs button").forEach(b=>b.classList.remove("active"));
+    document.querySelectorAll(".tab-panel").forEach(p=>p.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById(btn.dataset.tab).classList.add("active");
+  });
+});
+
+// ---- Players & Handicaps table ----
+function renderPlayersTable(){
+  const el = document.getElementById("players-table");
+  let head = "<thead><tr><th>#</th><th>Player</th><th>Hcp Index</th><th>Tee</th>";
+  HANDICAP_COURSES.forEach(k=> head += "<th>"+COURSES[k].name+"</th>");
+  head += "</tr></thead>";
+  let body = "<tbody>";
+  PLAYERS.forEach((p,i)=>{
+    body += "<tr><td>"+(i+1)+"</td><td>"+p.name+"</td><td>"+p.hi+"</td><td>"+p.tee+"</td>";
+    HANDICAP_COURSES.forEach(k=>{
+      body += "<td><strong>"+courseHandicap(p,k)+"</strong></td>";
+    });
+    body += "</tr>";
+  });
+  body += "</tbody>";
+  el.innerHTML = head + body;
+}
+
+// ---- Scorecards ----
+function renderRoundNav(){
+  const el = document.getElementById("round-nav");
+  el.innerHTML = "";
+  ROUND_ORDER.forEach(k=>{
+    const btn = document.createElement("button");
+    btn.textContent = COURSES[k].name + (k==="leven" ? " (Alt)" : "");
+    if(k===currentRound) btn.classList.add("active");
+    btn.addEventListener("click", ()=>{ currentRound = k; renderScorecards(); });
+    el.appendChild(btn);
+  });
+}
+
+function renderCourseCard(){
+  const c = COURSES[currentRound];
+  const el = document.getElementById("course-card");
+  const parText = c.par==null ? "TBD — enter on site" : c.par;
+  el.innerHTML =
+    '<div class="course-head">'+
+      '<div><p class="name">'+c.name+'</p><p class="sub">'+c.sub+' · '+c.day+'</p></div>'+
+      '<span class="pill">Par '+parText+'</span>'+
+    '</div>' +
+    (c.par==null ? '<p class="muted" style="margin-top:10px;">No slope/rating on file for this course — Course Handicap must be entered manually below for each player.</p>' : '');
+}
+
+function renderParSiTable(){
+  const el = document.getElementById("parsi-table");
+  const s = state[currentRound];
+  let head = '<thead><tr><th class="label">Hole</th>';
+  for(let i=1;i<=9;i++) head += "<th>"+i+"</th>";
+  head += '<th>OUT</th>';
+  for(let i=10;i<=18;i++) head += "<th>"+i+"</th>";
+  head += '<th>IN</th><th>TOT</th></tr></thead>';
+
+  function inputRow(label, arr, key){
+    let row = '<tr><td class="label">'+label+'</td>';
+    for(let i=0;i<9;i++) row += '<td><input class="cell-input" type="number" data-idx="'+i+'" data-key="'+key+'" value="'+(arr[i]??"")+'"></td>';
+    row += '<td class="out-in" id="'+key+'-out"></td>';
+    for(let i=9;i<18;i++) row += '<td><input class="cell-input" type="number" data-idx="'+i+'" data-key="'+key+'" value="'+(arr[i]??"")+'"></td>';
+    row += '<td class="out-in" id="'+key+'-in"></td>';
+    row += '<td class="total" id="'+key+'-tot"></td></tr>';
+    return row;
+  }
+  let body = "<tbody>" + inputRow("Par", s.par, "par") + inputRow("Stroke Index", s.si, "si") + "</tbody>";
+  el.innerHTML = head + body;
+
+  el.querySelectorAll("input").forEach(inp=>{
+    inp.addEventListener("input", (e)=>{
+      const idx = Number(e.target.dataset.idx);
+      const key = e.target.dataset.key;
+      const v = e.target.value === "" ? null : Number(e.target.value);
+      state[currentRound][key][idx] = v;
+      updateParSiTotals();
+      renderScoreTable();
+      renderRoundSummary();
+    });
+  });
+  updateParSiTotals();
+}
+
+function updateParSiTotals(){
+  const s = state[currentRound];
+  ["par","si"].forEach(key=>{
+    const arr = s[key];
+    const out = arr.slice(0,9).reduce((a,b)=>a+(b||0),0);
+    const inn = arr.slice(9,18).reduce((a,b)=>a+(b||0),0);
+    document.getElementById(key+"-out").textContent = out;
+    document.getElementById(key+"-in").textContent = inn;
+    document.getElementById(key+"-tot").textContent = out+inn;
+  });
+  const c = COURSES[currentRound];
+  const totEl = document.getElementById("par-tot");
+  if(c.par!=null && totEl){
+    const total = s.par.slice(0,9).reduce((a,b)=>a+(b||0),0) + s.par.slice(9,18).reduce((a,b)=>a+(b||0),0);
+  }
+}
+
+function renderPlayerTabs(){
+  const el = document.getElementById("player-tabs");
+  el.innerHTML = "";
+  PLAYERS.forEach(p=>{
+    const btn = document.createElement("button");
+    btn.textContent = p.name;
+    if(p.name===currentPlayer) btn.classList.add("active");
+    btn.addEventListener("click", ()=>{ currentPlayer = p.name; renderScoreTable(); });
+    el.appendChild(btn);
+  });
+}
+
+function renderScoreTable(){
+  const el = document.getElementById("score-table");
+  const s = state[currentRound];
+  const player = PLAYERS.find(p=>p.name===currentPlayer);
+  const c = COURSES[currentRound];
+  const manualHcp = c.par==null;
+  let chcp = courseHandicap(player, currentRound);
+
+  let head = '<thead><tr><th class="label">Hole</th>';
+  for(let i=1;i<=9;i++) head += "<th>"+i+"</th>";
+  head += '<th>OUT</th>';
+  for(let i=10;i<=18;i++) head += "<th>"+i+"</th>";
+  head += '<th>IN</th><th>TOT</th></tr></thead>';
+
+  let hcpCell;
+  if(manualHcp){
+    const val = s.manualHcp && s.manualHcp[currentPlayer]!=null ? s.manualHcp[currentPlayer] : "";
+    hcpCell = '<input class="cell-input" id="manual-hcp" type="number" value="'+val+'" style="width:52px;">';
+  } else {
+    hcpCell = '<span class="chcp-badge">Course Hcp '+chcp+'</span>';
+  }
+
+  let grossRow = '<tr><td class="label">'+currentPlayer+' — Gross &nbsp;'+hcpCell+'</td>';
+  for(let i=0;i<9;i++) grossRow += '<td><input class="cell-input" type="number" data-idx="'+i+'" value="'+(s.gross[currentPlayer][i]??"")+'"></td>';
+  grossRow += '<td class="out-in" id="g-out"></td>';
+  for(let i=9;i<18;i++) grossRow += '<td><input class="cell-input" type="number" data-idx="'+i+'" value="'+(s.gross[currentPlayer][i]??"")+'"></td>';
+  grossRow += '<td class="out-in" id="g-in"></td><td class="total" id="g-tot"></td></tr>';
+
+  let ptsRow = '<tr><td class="label">'+currentPlayer+' — Points</td>';
+  for(let i=0;i<9;i++) ptsRow += '<td id="p-'+i+'"></td>';
+  ptsRow += '<td class="out-in" id="p-out"></td>';
+  for(let i=9;i<18;i++) ptsRow += '<td id="p-'+i+'"></td>';
+  ptsRow += '<td class="out-in" id="p-in"></td><td class="total" id="p-tot"></td></tr>';
+
+  el.innerHTML = head + "<tbody>" + grossRow + ptsRow + "</tbody>";
+
+  if(manualHcp){
+    document.getElementById("manual-hcp").addEventListener("input",(e)=>{
+      if(!s.manualHcp) s.manualHcp = {};
+      s.manualHcp[currentPlayer] = e.target.value === "" ? null : Number(e.target.value);
+      renderScoreTable();
+      renderRoundSummary();
+    });
+  }
+
+  el.querySelectorAll('input[data-idx]').forEach(inp=>{
+    inp.addEventListener("input",(e)=>{
+      const idx = Number(e.target.dataset.idx);
+      state[currentRound].gross[currentPlayer][idx] = e.target.value === "" ? null : Number(e.target.value);
+      updateScoreTotals();
+      renderRoundSummary();
+    });
+  });
+
+  updateScoreTotals();
+}
+
+function updateScoreTotals(){
+  const s = state[currentRound];
+  const player = PLAYERS.find(p=>p.name===currentPlayer);
+  const c = COURSES[currentRound];
+  let chcp = c.par==null
+    ? (s.manualHcp && s.manualHcp[currentPlayer]!=null ? s.manualHcp[currentPlayer] : null)
+    : courseHandicap(player, currentRound);
+
+  const gross = s.gross[currentPlayer];
+  const gOut = gross.slice(0,9).reduce((a,b)=>a+(b||0),0);
+  const gIn = gross.slice(9,18).reduce((a,b)=>a+(b||0),0);
+  document.getElementById("g-out").textContent = gOut || "";
+  document.getElementById("g-in").textContent = gIn || "";
+  document.getElementById("g-tot").textContent = (gOut+gIn) || "";
+
+  let pOut=0, pIn=0;
+  for(let i=0;i<18;i++){
+    const pts = pointsForHole(gross[i], chcp, s.si[i], s.par[i]);
+    const cell = document.getElementById("p-"+i);
+    cell.textContent = pts==null ? "" : pts;
+    cell.className = pts==null ? "" : "pts-cell pts-"+pts;
+    if(i<9) pOut += pts||0; else pIn += pts||0;
+  }
+  document.getElementById("p-out").textContent = pOut;
+  document.getElementById("p-in").textContent = pIn;
+  document.getElementById("p-tot").textContent = pOut+pIn;
+}
+
+function roundTotalPointsWithManual(courseKey, playerName){
+  const s = state[courseKey];
+  const c = COURSES[courseKey];
+  const player = PLAYERS.find(p=>p.name===playerName);
+  let chcp = c.par==null
+    ? (s.manualHcp && s.manualHcp[playerName]!=null ? s.manualHcp[playerName] : null)
+    : courseHandicap(player, courseKey);
+  let total = 0;
+  for(let i=0;i<18;i++){
+    const pts = pointsForHole(s.gross[playerName][i], chcp, s.si[i], s.par[i]);
+    total += pts || 0;
+  }
+  return total;
+}
+
+function renderRoundSummary(){
+  const el = document.getElementById("round-summary");
+  const rows = PLAYERS.map(p=>({name:p.name, pts: roundTotalPointsWithManual(currentRound, p.name)}))
+                       .sort((a,b)=>b.pts-a.pts);
+  let head = "<thead><tr><th>Player</th><th style='text-align:center;'>Round Points</th></tr></thead>";
+  let body = "<tbody>";
+  rows.forEach(r=>{
+    body += "<tr><td>"+r.name+"</td><td style='text-align:center;font-weight:800;'>"+r.pts+"</td></tr>";
+  });
+  body += "</tbody>";
+  el.innerHTML = head + body;
+}
+
+function renderScorecards(){
+  renderRoundNav();
+  renderCourseCard();
+  renderParSiTable();
+  renderPlayerTabs();
+  renderScoreTable();
+  renderRoundSummary();
+}
+
+// ---- Leaderboard ----
+function renderLeaderboard(){
+  const el = document.getElementById("leaderboard-table");
+  const rows = PLAYERS.map(p=>{
+    const rEden = roundTotalPointsWithManual("eden", p.name);
+    const rRd2 = Math.max(roundTotalPointsWithManual("old", p.name), roundTotalPointsWithManual("leven", p.name));
+    const rCrail = roundTotalPointsWithManual("crail", p.name);
+    const rCraig = roundTotalPointsWithManual("craigtoun", p.name);
+    const total = rEden + rRd2 + rCrail + rCraig;
+    return {name:p.name, rEden, rRd2, rCrail, rCraig, total};
+  }).sort((a,b)=>b.total-a.total);
+
+  let head = "<thead><tr><th>#</th><th>Player</th><th>Eden</th><th>Old/Leven</th><th>Crail</th><th>Craigtoun</th><th>Total</th></tr></thead>";
+  let body = "<tbody>";
+  const medals = ["🥇","🥈","🥉"];
+  rows.forEach((r,i)=>{
+    body += "<tr class='"+(i===0 && r.total>0 ? "leader":"")+"'>"+
+      "<td class='rank'>"+(medals[i]||("#"+(i+1)))+"</td>"+
+      "<td>"+r.name+"</td>"+
+      "<td style='text-align:center;'>"+r.rEden+"</td>"+
+      "<td style='text-align:center;'>"+r.rRd2+"</td>"+
+      "<td style='text-align:center;'>"+r.rCrail+"</td>"+
+      "<td style='text-align:center;'>"+r.rCraig+"</td>"+
+      "<td class='total'>"+r.total+"</td>"+
+      "</tr>";
+  });
+  body += "</tbody>";
+  el.innerHTML = head + body;
+}
+
+// Refresh leaderboard + summary whenever the Leaderboard or Scorecards tab is opened
+document.querySelectorAll("nav.tabs button").forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    if(btn.dataset.tab === "leaderboard") renderLeaderboard();
+    if(btn.dataset.tab === "scorecards") renderRoundSummary();
+  });
+});
+
+// ---- init ----
+renderPlayersTable();
+renderScorecards();
+renderLeaderboard();
+</script>
+</body>
+</html>
