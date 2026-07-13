@@ -508,22 +508,49 @@ const CHIPS_NEGATIVE = [
   {name:"Beer",        desc:"Whiff or top your shot — beer must be consumed that evening too!"},
 ];
 
+// ---- preset scores (entered from the physical scorecards) ----
+// Eden Course, Round 1 — transcribed from photos of both foursomes' cards.
+const PRESET = {
+  eden: {
+    par: [4,4,4,4,3,4,4,3,5, 3,4,4,4,4,3,5,4,4],
+    si:  [11,3,8,17,15,5,13,9,1, 14,7,16,2,10,18,6,4,12],
+    gross: {
+      // Group 1 card — lower photo quality, reconciled against the card's own OUT/IN/TOTAL boxes
+      // (Andrew 101, Jonathan 83, Patrick 96, Fraser 86). A few individual holes were hard to read —
+      // worth a quick glance against the card.
+      Andrew:   [6,7,5,5,5,5,5,4,4,  7,5,6,6,5,5,8,6,7],
+      Jonathan: [7,7,5,4,3,4,4,3,3,  4,5,5,4,3,4,8,5,5],
+      Patrick:  [7,7,6,4,2,5,6,6,7,  4,6,6,6,5,4,5,5,5],
+      Fraser:   [6,5,4,4,4,4,5,5,7,  4,5,5,4,4,4,6,5,5],
+      // Group 2 card — clear photo, every hole checksummed against the card's OUT/IN/TOTAL boxes
+      // (Paul 84, Colin 94, Peter 90, David 83). High confidence.
+      Paul:     [4,7,6,5,4,6,5,4,5,  3,5,4,4,4,3,5,6,4],
+      Colin:    [7,5,5,5,4,6,7,3,4,  3,5,5,7,6,4,6,7,5],
+      Peter:    [5,6,5,5,4,4,6,5,6,  1,4,6,5,5,4,6,7,6],
+      David:    [4,5,5,3,4,5,5,4,6,  5,4,3,4,5,4,8,5,4],
+    }
+  }
+};
+
 // ---- state ----
 let currentRound = "eden";
 let currentPlayer = PLAYERS[0].name;
 let currentChipRound = "eden";
 const state = {};
 ROUND_ORDER.forEach(k=>{
+  const preset = PRESET[k];
   state[k] = {
-    par: Array(18).fill(null),
-    si: Array(18).fill(null),
+    par: preset ? preset.par.slice() : Array(18).fill(null),
+    si: preset ? preset.si.slice() : Array(18).fill(null),
     gross: {},
     chips: {
       positive: Array(CHIPS_POSITIVE.length).fill(""),
       negative: Array(CHIPS_NEGATIVE.length).fill("")
     }
   };
-  PLAYERS.forEach(p=>{ state[k].gross[p.name] = Array(18).fill(null); });
+  PLAYERS.forEach(p=>{
+    state[k].gross[p.name] = (preset && preset.gross[p.name]) ? preset.gross[p.name].slice() : Array(18).fill(null);
+  });
 });
 
 // ---- math ----
