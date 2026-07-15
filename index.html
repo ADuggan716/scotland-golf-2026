@@ -286,9 +286,10 @@
   <p>Individual Net Stableford · 4 rounds · 8 players</p>
   <div class="badge-row">
     <span class="badge">Mon — Eden Course</span>
-    <span class="badge">Tue — Old Course / Leven Links</span>
-    <span class="badge">Wed — Crail (Balcomie)</span>
-    <span class="badge">Thu — Craigtoun</span>
+    <span class="badge" style="opacity:.65;">Tue — Off day</span>
+    <span class="badge">Wed — Old Course / Leven Links</span>
+    <span class="badge">Thu — Crail (Balcomie)</span>
+    <span class="badge">Fri — Craigtoun</span>
   </div>
 </header>
 
@@ -349,8 +350,10 @@
       <div class="card">
         <h2>Winning the trip</h2>
         <p>Each round is scored separately; total Stableford points across all 4 rounds are added up on the
-        Leaderboard tab. Most total points after 4 rounds wins. Round-by-round results are worth calling out too —
-        daily bragging rights / side bets.</p>
+        Leaderboard tab as the final score of the week. Most total points after 4 rounds wins. Round-by-round
+        results are worth calling out too — daily bragging rights / side bets.</p>
+        <p class="muted" style="margin-top:10px;">Schedule: Mon Eden · Tue off (no golf) · Wed Old Course /
+        Leven Links (split groups, same day) · Thu Crail · Fri Craigtoun.</p>
       </div>
       <div class="card">
         <h2>Quick reference</h2>
@@ -377,8 +380,8 @@
     <div class="card">
       <h2>Players &amp; Course Handicaps</h2>
       <p class="muted">Course Handicap = ROUND(Handicap Index × Slope/113 + (Course Rating − Par)), calculated per
-        course/tee below. Leven Links isn't included — no slope/rating was supplied for it, so enter that Course
-        Handicap manually on the Leven scorecard.</p>
+        course/tee below. Leven Links has no separate senior tee on record, so everyone (including David) is
+        calculated off the same Yellow-tee rating there.</p>
       <div class="scroll-x">
         <table class="simple players-table" id="players-table"></table>
       </div>
@@ -434,7 +437,9 @@
   <section id="leaderboard" class="tab-panel">
     <div class="card">
       <h2>Leaderboard — Total Stableford Points</h2>
-      <p class="muted">Round 2 auto-picks whichever of Old Course / Leven Links has points entered.</p>
+      <p class="muted">Round 2 auto-picks whichever of Old Course / Leven Links has points entered. The Total
+        column is the final score of the week — most points after all 4 rounds wins the trip.</p>
+      <p class="muted" id="week-champion-banner" style="font-weight:700;color:var(--green);"></p>
       <div class="scroll-x">
         <table class="lb simple" id="leaderboard-table"></table>
       </div>
@@ -500,14 +505,16 @@ const PLAYERS = [
 ];
 
 const COURSES = {
-  eden:      {name:"The Eden Course",        sub:"St Andrews Links",                    day:"Monday — Round 1",        par:70, std:{slope:121, rating:68.9}, sen:{slope:117, rating:67.0}},
-  old:       {name:"The Old Course",         sub:"St Andrews Links",                    day:"Tuesday — Round 2",       par:72, std:{slope:129, rating:71.4}, sen:{slope:125, rating:69.9}},
-  leven:     {name:"Leven Links",            sub:"Alt. for Round 2, if your group plays here", day:"Tuesday — Round 2 (Alt)", par:null, std:null, sen:null},
-  crail:     {name:"Crail Golfing Society",  sub:"Balcomie Links",                       day:"Wednesday — Round 3",     par:69, std:{slope:122, rating:69.7}, sen:{slope:118, rating:67.6}},
-  craigtoun: {name:"The Craigtoun Course",   sub:"St Andrews Links (formerly Duke's)",   day:"Thursday — Round 4",      par:71, std:{slope:134, rating:72.7}, sen:{slope:133, rating:70.6}},
+  eden:      {name:"The Eden Course",        sub:"St Andrews Links",                              day:"Monday — Round 1",         par:70, std:{slope:121, rating:68.9}, sen:{slope:117, rating:67.0}},
+  old:       {name:"The Old Course",         sub:"St Andrews Links (Andrew, Paul, Jonathan, Colin)", day:"Wednesday — Round 2",    par:72, std:{slope:129, rating:71.4}, sen:{slope:125, rating:69.9}},
+  // Leven Links has no separate senior/forward tee on record — everyone (including David) plays
+  // the same verified Yellow tee: Par 71, Slope 129, Rating 70.0 (thesocialgolfer.com hole-by-hole card).
+  leven:     {name:"Leven Links",            sub:"Leven Golfing Society (Patrick, David, Peter, Fraser)", day:"Wednesday — Round 2 (Alt)", par:71, std:{slope:129, rating:70.0}, sen:{slope:129, rating:70.0}},
+  crail:     {name:"Crail Golfing Society",  sub:"Balcomie Links",                                 day:"Thursday — Round 3",       par:69, std:{slope:122, rating:69.7}, sen:{slope:118, rating:67.6}},
+  craigtoun: {name:"The Craigtoun Course",   sub:"St Andrews Links (formerly Duke's)",             day:"Friday — Round 4",         par:71, std:{slope:134, rating:72.7}, sen:{slope:133, rating:70.6}},
 };
 const ROUND_ORDER = ["eden","old","leven","crail","craigtoun"];
-const HANDICAP_COURSES = ["eden","old","crail","craigtoun"]; // ones with slope/rating data
+const HANDICAP_COURSES = ["eden","old","leven","crail","craigtoun"]; // ones with slope/rating data
 
 const CHIPS_POSITIVE = [
   {name:"1 Putt",               desc:"Hole out in one putt."},
@@ -549,6 +556,14 @@ const PRESET = {
       Peter:    [5,6,5,5,4,4,6,5,6,  1,4,6,5,5,4,6,7,6],
       David:    [4,5,5,3,4,5,5,4,6,  5,4,3,4,5,4,8,5,4],
     }
+  },
+  // Leven Links, Wednesday — par/stroke index from the club's verified Yellow-tee scorecard
+  // (thesocialgolfer.com, hole-by-hole, checksums to OUT 2897 / IN 3412 / 6309 yards, par 71).
+  // No scores yet — gross stays blank until the round is played.
+  leven: {
+    par: [4,4,4,4,3,5,3,4,3, 4,4,5,5,4,3,4,4,4],
+    si:  [10,8,16,2,18,4,14,6,12, 11,17,1,3,15,7,13,5,9],
+    gross: {}
   }
 };
 
@@ -556,7 +571,7 @@ const PRESET = {
 // Bump this whenever new official scores/pars are published to the site (PRESET changes below).
 // Saved data in a browser from an older version is discarded in favor of the fresh published data,
 // so a re-deploy always wins over stale local edits sitting in someone's browser.
-const DATA_VERSION = "2026-07-13c";
+const DATA_VERSION = "2026-07-15a";
 const STORAGE_KEY = "scotlandGolf2026_state_v1";
 
 // Team pairings picked for the day, per round. Rounds not listed here start with
@@ -997,7 +1012,8 @@ function renderLeaderboard(){
     return {name:p.name, rEden, rRd2, rCrail, rCraig, total};
   }).sort((a,b)=>b.total-a.total);
 
-  let head = "<thead><tr><th>#</th><th>Player</th><th>Eden</th><th>Old/Leven</th><th>Crail</th><th>Craigtoun</th><th>Total</th></tr></thead>";
+  let head = "<thead><tr><th>#</th><th>Player</th><th>Eden</th><th>Old/Leven</th><th>Crail</th><th>Craigtoun</th>"+
+    "<th>Total<br><span style='font-weight:400;font-size:11px;'>Final Score of the Week</span></th></tr></thead>";
   let body = "<tbody>";
   const medals = ["🥇","🥈","🥉"];
   rows.forEach((r,i)=>{
@@ -1013,6 +1029,13 @@ function renderLeaderboard(){
   });
   body += "</tbody>";
   el.innerHTML = head + body;
+
+  const bannerEl = document.getElementById("week-champion-banner");
+  if(rows[0] && rows[0].total > 0){
+    bannerEl.textContent = "🏆 "+rows[0].name+" leads with "+rows[0].total+" points — final score of the week so far.";
+  } else {
+    bannerEl.textContent = "";
+  }
 }
 
 // ---- Chips game ----
